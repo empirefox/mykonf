@@ -1,7 +1,9 @@
 package mykonf
 
 import (
+	"encoding/json"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/creasty/defaults"
@@ -53,9 +55,11 @@ func LoadPath(envPrefix, path string, conf any) error {
 	err = k.UnmarshalWithConf("", conf, koanf.UnmarshalConf{Tag: "yaml",
 		DecoderConfig: &mapstructure.DecoderConfig{
 			DecodeHook: mapstructure.ComposeDecodeHookFunc(
+				StringToJsonHookFunc(),
 				mapstructure.StringToSliceHookFunc(","),
 				mapstructure.StringToTimeDurationHookFunc(),
-				mapstructure.TextUnmarshallerHookFunc()),
+				mapstructure.TextUnmarshallerHookFunc(),
+			),
 			Metadata:         nil,
 			WeaklyTypedInput: true,
 		}})
@@ -75,4 +79,28 @@ func ConfigPath(envPrefix string) string {
 		return p
 	}
 	return defaultConfigPath
+}
+
+func StringToJsonHookFunc() mapstructure.DecodeHookFunc {
+	return func(f reflect.Type, t reflect.Type, data any) (any, error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+		var r reflect.Value
+		switch t.Kind() {
+		case reflect.Map, reflect.Struct:
+			r = reflect.New(t)
+		default:
+			return data, nil
+		}
+		v := data.(string)
+		if v != "" {
+			err := json.Unmarshal([]byte(v), r.Interface())
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return r.Elem(), nil
+	}
 }

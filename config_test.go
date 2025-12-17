@@ -1,6 +1,7 @@
 package mykonf
 
 import (
+	"log"
 	"testing"
 )
 
@@ -8,7 +9,8 @@ const envPrefix = "SFTPGO_HOOK_"
 
 // Config all config in this
 type Config struct {
-	Listen string `yaml:"listen" default:":8080"`
+	Listen      string            `yaml:"listen" default:":8080"`
+	CallbackMap map[string]string `yaml:"callback_map"`
 
 	BaseHomeDir string `yaml:"base_home_dir" default:"/srv/sftpgo/data"`
 	Uid         int    `yaml:"uid" default:"1000"`
@@ -27,13 +29,17 @@ var conf *Config
 func Get() *Config {
 	if conf == nil {
 		conf = new(Config)
-		Load(envPrefix, conf)
+		err := Load(envPrefix, conf)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
 	return conf
 }
 
 func TestLoadConfig(t *testing.T) {
 	t.Setenv("SFTPGO_HOOK_SERVER_CONFIG", "../config-test.yaml")
+	t.Setenv("SFTPGO_HOOK_CALLBACK_MAP", "{\"a\":\"http://b/c\"}")
 	t.Setenv("SFTPGO_HOOK_UID", "2000")
 	t.Setenv("SFTPGO_HOOK_GITEA_URL", "url_here")
 	t.Setenv("SFTPGO_HOOK_GITEA_API_KEY", "api_key_here")
@@ -41,7 +47,10 @@ func TestLoadConfig(t *testing.T) {
 	conf := Get()
 
 	if conf.Listen != ":8080" {
-		t.Fatalf("conf.Listen != defaultListen")
+		t.Fatalf("conf.Listen != defaultListen, got: %s", conf.Listen)
+	}
+	if conf.CallbackMap["a"] != "http://b/c" {
+		t.Fatalf("conf.CallbackMap[a] != http://b/c")
 	}
 	if conf.Uid != 2000 {
 		t.Fatalf("conf.Gitea.Url should be '2000', but got: '%d'",

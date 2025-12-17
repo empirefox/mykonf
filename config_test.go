@@ -20,7 +20,7 @@ type Config struct {
 
 	Gitea struct {
 		Url    string `yaml:"url"`
-		ApiKey string `yaml:"api_key"`
+		ApiKey string `yaml:"api_key" default:"api_key_here"`
 	} `yaml:"gitea"`
 }
 
@@ -42,7 +42,6 @@ func TestLoadConfig(t *testing.T) {
 	t.Setenv("SFTPGO_HOOK_CALLBACK_MAP", "{\"a\":\"http://b/c\"}")
 	t.Setenv("SFTPGO_HOOK_UID", "2000")
 	t.Setenv("SFTPGO_HOOK_GITEA_URL", "url_here")
-	t.Setenv("SFTPGO_HOOK_GITEA_API_KEY", "api_key_here")
 
 	conf := Get()
 

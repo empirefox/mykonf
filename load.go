@@ -86,22 +86,23 @@ func StringToJsonHookFunc() mapstructure.DecodeHookFunc {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
-		v := data.(string)
-		if v == "" {
-			return data, nil
-		}
 
-		var r reflect.Value
 		switch t.Kind() {
 		case reflect.Map, reflect.Struct:
-			r = reflect.New(t)
 		default:
 			return data, nil
 		}
+
+		v := data.(string)
+		if v == "" {
+			return reflect.Zero(t).Interface(), nil
+		}
+
+		r := reflect.New(t)
 		err := json.Unmarshal([]byte(v), r.Interface())
 		if err != nil {
 			return nil, err
 		}
-		return r.Elem(), nil
+		return r.Elem().Interface(), nil
 	}
 }

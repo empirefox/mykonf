@@ -1,38 +1,36 @@
 # mykonf
 
-Go configuration management library that supports loading and merging configurations from multiple sources with clear priority ordering.
+Go 配置管理库，支持从多个来源加载和合并配置，具有清晰的优先级顺序。
 
-[中文文档](README_zh.md)
+## 功能特性
 
-## Features
+- YAML 配置文件加载
+- 环境变量覆盖（支持自定义前缀）
+- 嵌套结构体配置支持
+- JSON 字符串解析（用于复杂的 map 和 struct 字段）
+- 配置文件中的环境变量展开（`$VAR` 或 `${VAR}` 语法）
+- 通过 struct tag 设置默认值
+- 类型自动转换（duration、slice、bool 等）
 
-- YAML configuration file loading
-- Environment variable overrides (with custom prefix support)
-- Nested struct configuration support
-- JSON string parsing (for complex map and struct fields)
-- Environment variable expansion in config files (`$VAR` or `${VAR}` syntax)
-- Default values via struct tags
-- Automatic type conversion (duration, slice, bool, etc.)
-
-## Installation
+## 安装
 
 ```bash
 go get github.com/empirefox/mykonf
 ```
 
-## Configuration Priority
+## 配置项优先级
 
-Configuration loading follows this priority order (highest to lowest):
+配置加载遵循以下优先级顺序（从高到低）：
 
-| Priority | Source | Description |
-|----------|--------|-------------|
-| 1 (Highest) | Environment Variables | Must have the specified `envPrefix` |
-| 2 | YAML Config File | Default `config.yaml` or custom path |
-| 3 (Lowest) | Default Values | Specified via `default:""` struct tag |
+| 优先级 | 来源 | 说明 |
+|--------|------|------|
+| 1 (最高) | 环境变量 | 必须带有指定的 `envPrefix` 前缀 |
+| 2 | YAML 配置文件 | 默认 `config.yaml` 或自定义路径 |
+| 3 (最低) | 默认值 | 通过 `default:""` struct tag 指定 |
 
-## Usage
+## 使用方法
 
-### Basic Usage
+### 基本用法
 
 ```go
 package main
@@ -58,13 +56,13 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    // conf is now loaded
+    // conf 已加载完成
 }
 ```
 
-### YAML Configuration File
+### YAML 配置文件
 
-By default, reads `config.yaml` from the current directory:
+默认读取当前目录下的 `config.yaml`：
 
 ```yaml
 port: 9090
@@ -76,33 +74,33 @@ database:
   name: "myapp"
 ```
 
-### Custom Config File Path
+### 自定义配置文件路径
 
-Specify the config file path via environment variable:
+通过环境变量指定配置文件路径：
 
 ```bash
 export APP_SERVER_CONFIG=/etc/myapp/config.yaml
 ```
 
-### Environment Variable Overrides
+### 环境变量覆盖
 
-Environment variable naming rules:
-- Prefix + field path (uppercase, joined with underscores)
-- Nested fields are separated by underscores
+环境变量命名规则：
+- 前缀 + 字段路径（大写，用下划线连接）
+- 嵌套字段使用下划线分隔
 
 ```bash
-# Basic fields
+# 基本字段
 export APP_PORT=9000
 export APP_HOST="0.0.0.0"
 
-# Nested fields
+# 嵌套字段
 export APP_DATABASE_HOST="prod.db.example.com"
 export APP_DATABASE_PORT=5432
 ```
 
-### Environment Variables in Config Files
+### 配置文件中使用环境变量
 
-Config files can reference environment variables:
+配置文件中可以引用环境变量：
 
 ```yaml
 database:
@@ -110,9 +108,9 @@ database:
   connection_string: "${DB_USER}:${DB_PASSWORD}@${DB_HOST}"
 ```
 
-### JSON String Parsing
+### JSON 字符串解析
 
-For map or struct type fields, you can pass JSON strings:
+对于 map 或 struct 类型的字段，可以通过 JSON 字符串传递：
 
 ```bash
 export APP_CALLBACK_MAP='{"push":"http://webhook/push","pull":"http://webhook/pull"}'
@@ -124,9 +122,9 @@ type Config struct {
 }
 ```
 
-### Slice Fields
+### 切片字段
 
-Slice fields use comma separation in environment variables:
+切片字段在环境变量中使用逗号分隔：
 
 ```bash
 export APP_HOSTS="host1,host2,host3"
@@ -138,9 +136,9 @@ type Config struct {
 }
 ```
 
-### Duration Fields
+### Duration 字段
 
-Supports Go standard duration format:
+支持 Go 标准的 duration 格式：
 
 ```yaml
 timeout: 30s
@@ -151,7 +149,7 @@ interval: 5m
 export APP_TIMEOUT="1m30s"
 ```
 
-## API Reference
+## API 参考
 
 ### Load
 
@@ -159,7 +157,7 @@ export APP_TIMEOUT="1m30s"
 func Load(envPrefix string, conf any) error
 ```
 
-Loads configuration using the default config path. The config file path is specified via the `{envPrefix}SERVER_CONFIG` environment variable, defaulting to `config.yaml`.
+使用默认配置路径加载配置。配置文件路径通过 `{envPrefix}SERVER_CONFIG` 环境变量指定，默认为 `config.yaml`。
 
 ### LoadPath
 
@@ -167,12 +165,12 @@ Loads configuration using the default config path. The config file path is speci
 func LoadPath(envPrefix, path string, conf any) error
 ```
 
-Loads configuration from a specified path.
+从指定路径加载配置文件。
 
-Parameters:
-- `envPrefix`: Environment variable prefix (e.g., `APP_`)
-- `path`: Config file path
-- `conf`: Pointer to config struct
+参数：
+- `envPrefix`: 环境变量前缀（如 `APP_`）
+- `path`: 配置文件路径
+- `conf`: 配置结构体指针
 
 ### ConfigPath
 
@@ -180,9 +178,9 @@ Parameters:
 func ConfigPath(envPrefix string) string
 ```
 
-Gets the config file path. Checks the `{envPrefix}SERVER_CONFIG` environment variable, defaults to `config.yaml`.
+获取配置文件路径。检查 `{envPrefix}SERVER_CONFIG` 环境变量，默认返回 `config.yaml`。
 
-## Complete Example
+## 完整示例
 
 ```go
 package main
@@ -219,7 +217,7 @@ func main() {
 }
 ```
 
-Config file `config.yaml`:
+配置文件 `config.yaml`：
 
 ```yaml
 listen: ":9090"
@@ -237,7 +235,7 @@ features:
   - metrics
 ```
 
-Environment variable overrides:
+环境变量覆盖：
 
 ```bash
 export MYAPP_LISTEN=":8080"
@@ -246,11 +244,11 @@ export MYAPP_CALLBACK_MAP='{"event":"http://hooks/event"}'
 export DB_PASSWORD="secret"
 ```
 
-## Dependencies
+## 依赖
 
-- [koanf](https://github.com/knadh/koanf) - Configuration management framework
-- [defaults](https://github.com/creasty/defaults) - Default value handling
-- [mapstructure](https://github.com/go-viper/mapstructure) - Struct decoding
+- [koanf](https://github.com/knadh/koanf) - 配置管理框架
+- [defaults](https://github.com/creasty/defaults) - 默认值处理
+- [mapstructure](https://github.com/go-viper/mapstructure) - 结构体解码
 
 ## License
 
